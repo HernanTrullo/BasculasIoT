@@ -68,13 +68,13 @@ ws.onmessage = (evt) => {
 
   // Calcular promedio de últimos 5 pesos
   ultimosPesos.push(data.mejorPeso);
-  if (ultimosPesos.length > 5) ultimosPesos.shift();
+  if (ultimosPesos.length > 30) ultimosPesos.shift();
   const promedio = ultimosPesos.reduce((a, b) => a + b, 0) / ultimosPesos.length;
 
   // calcular porcentaje de error
   const peso_objetivo = 20;
   const peso_encontrado = data.mejorPeso.toFixed(2);
-  const porcentaje_error = 100*(peso_encontrado-peso_objetivo)/peso_objetivo 
+  const porcentaje_error = 100*(promedio -peso_objetivo)/peso_objetivo 
 
   // Mostrar info separada por ítems
   info.innerHTML = ""; // limpiar
