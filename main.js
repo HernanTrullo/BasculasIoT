@@ -1,4 +1,4 @@
-const espIP = "8fb7-200-6-182-114.ngrok-free.app";  // IP de tu ESP32
+const espIP = "eff8-200-6-182-114.ngrok-free.app";  // IP de tu ESP32
 const pesoIdeal = 20.0;         // <-- Peso objetivo
 
 const ws = new WebSocket(`wss://${espIP}/ws`);
