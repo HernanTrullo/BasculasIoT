@@ -81,7 +81,7 @@ ws.onmessage = (evt) => {
   const items = [
     { label: "Mejor combinación", value: `[${data.combinacion.join(", ")}]` },
     { label: "Peso objetivo", value: `${peso_objetivo} g` },
-    { label: "Peso encontrado", value: `${peso_encontrado.toFixed(2)} g` },
+    { label: "Peso encontrado", value: `${peso_encontrado} g` },
     { label: "Desviación", value: `${porcentaje_error.toFixed(2)} %` },
     { label: "Promedio pesos", value: `${promedio.toFixed(2)} g` },
     { label: "Uso de básculas", value: `${data.mejorTamano}` },
