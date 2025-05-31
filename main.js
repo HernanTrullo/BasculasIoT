@@ -71,13 +71,18 @@ ws.onmessage = (evt) => {
   if (ultimosPesos.length > 5) ultimosPesos.shift();
   const promedio = ultimosPesos.reduce((a, b) => a + b, 0) / ultimosPesos.length;
 
+  // calcular porcentaje de error
+  const peso_objetivo = 20;
+  const peso_encontrado = data.mejorPeso.toFixed(2);
+  const porcentaje_error = 100*(peso_encontrado-peso_objetivo)/peso_objetivo 
+
   // Mostrar info separada por ítems
   info.innerHTML = ""; // limpiar
   const items = [
     { label: "Mejor combinación", value: `[${data.combinacion.join(", ")}]` },
-    { label: "Peso objetivo", value: `${20} g` },
+    { label: "Peso objetivo", value: `${peso_objetivo} g` },
     { label: "Peso encontrado", value: `${data.mejorPeso.toFixed(2)} g` },
-    { label: "Diferencia con ideal", value: `${(data.mejorPeso - pesoIdeal).toFixed(2)} g` },
+    { label: "Porcentaje de error", value: `${porcentaje_error.toFixed(2)} %` },
     { label: "Promedio pesos", value: `${promedio.toFixed(2)} g` },
     { label: "Uso de básculas", value: `${data.mejorTamano}` },
     { label: "Paquetes/minuto", value: `${paquetesPorMinuto} paq` },
