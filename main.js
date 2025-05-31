@@ -75,11 +75,11 @@ ws.onmessage = (evt) => {
   info.innerHTML = ""; // limpiar
   const items = [
     { label: "Mejor combinación", value: `[${data.combinacion.join(", ")}]` },
-    { label: "Peso total", value: `${data.mejorPeso.toFixed(2)} g` },
+    { label: "Peso objetivo", value: `${data.mejorPeso.toFixed(2)} g` },
     { label: "Diferencia con ideal", value: `${(data.mejorPeso - pesoIdeal).toFixed(2)} g` },
     { label: "Promedio pesos", value: `${promedio.toFixed(2)} g` },
     { label: "Uso de básculas", value: `${data.mejorTamano}` },
-    { label: "Paquetes/minuto", value: `${paquetesPorMinuto}` },
+    { label: "Paquetes/minuto", value: `${paquetesPorMinuto} paq` },
   ];
 
   items.forEach(({ label, value }) => {
