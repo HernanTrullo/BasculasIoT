@@ -67,7 +67,7 @@ ws.onmessage = (evt) => {
     `<b>Diferencia con ideal:</b> ${(data.mejorPeso - pesoIdeal).toFixed(2)}<br>` +
     `<b>Promedio pesos:</b> ${promedio.toFixed(2)}<br>` +
     `<b>Uso de:</b> ${data.mejorTamano} básculas<br>` +
-    `<small>Última actualización: ${now.toLocaleTimeString()}</small>`;
+    `<b>Última actualización: </b> ${now.toLocaleTimeString()}`;
 
   // 4) Actualizar gráfico
   pesoChart.data.datasets[0].data.push({ x: now, y: data.mejorPeso });
