@@ -75,7 +75,8 @@ ws.onmessage = (evt) => {
   info.innerHTML = ""; // limpiar
   const items = [
     { label: "Mejor combinación", value: `[${data.combinacion.join(", ")}]` },
-    { label: "Peso objetivo", value: `${data.mejorPeso.toFixed(2)} g` },
+    { label: "Peso objetivo", value: `${20} g` },
+    { label: "Peso encontrado", value: `${data.mejorPeso.toFixed(2)} g` },
     { label: "Diferencia con ideal", value: `${(data.mejorPeso - pesoIdeal).toFixed(2)} g` },
     { label: "Promedio pesos", value: `${promedio.toFixed(2)} g` },
     { label: "Uso de básculas", value: `${data.mejorTamano}` },
