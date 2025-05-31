@@ -7,6 +7,7 @@ const info = document.getElementById("info");
 
 // Almacenar los últimos 5 pesos para promedio
 const ultimosPesos = [];
+const ultimosTiempos = [];  // para contar paquetes por minuto
 
 // Gráfico principal
 const pesoChart = new Chart(document.getElementById('pesoChart').getContext('2d'), {
@@ -44,7 +45,18 @@ ws.onmessage = (evt) => {
   const data = JSON.parse(evt.data);
   const now = new Date();
 
-  // 1) Mostrar básculas
+  // Registrar tiempo de llegada
+    ultimosTiempos.push(now);
+
+    // Filtrar solo los de los últimos 60 segundos
+    const haceUnMinuto = new Date(now.getTime() - 60 * 1000);
+    const tiemposFiltrados = ultimosTiempos.filter(t => t >= haceUnMinuto);
+    ultimosTiempos.length = 0;
+    ultimosTiempos.push(...tiemposFiltrados);
+
+    const paquetesPorMinuto = tiemposFiltrados.length;
+
+  // Mostrar básculas
   cont.innerHTML = "";
   data.basculas.forEach((p, i) => {
     const div = document.createElement("div");
@@ -54,31 +66,31 @@ ws.onmessage = (evt) => {
     cont.appendChild(div);
   });
 
-  // 2) Calcular promedio de últimos 5 pesos
+  // Calcular promedio de últimos 5 pesos
   ultimosPesos.push(data.mejorPeso);
-  if (ultimosPesos.length > 10) ultimosPesos.shift();
-  const suma = ultimosPesos.reduce((a, b) => a + b, 0);
-  const promedio = suma / ultimosPesos.length;
+  if (ultimosPesos.length > 5) ultimosPesos.shift();
+  const promedio = ultimosPesos.reduce((a, b) => a + b, 0) / ultimosPesos.length;
 
-  // 3) Mostrar info
-  info.innerHTML =
-    `<b>Mejor combinación:</b> [${data.combinacion.join(", ")}]<br>` +
-    `<b>Peso total:</b> ${data.mejorPeso.toFixed(2)}<br>` +
-    `<b>Diferencia con ideal:</b> ${(data.mejorPeso - pesoIdeal).toFixed(2)}<br>` +
-    `<b>Promedio pesos:</b> ${promedio.toFixed(2)}<br>` +
-    `<b>Uso de:</b> ${data.mejorTamano} básculas<br>` +
-    `<b>Última actualización: </b> ${now.toLocaleTimeString()}`;
+  // Mostrar info separada por ítems
+  info.innerHTML = ""; // limpiar
+  const items = [
+    { label: "Mejor combinación", value: `[${data.combinacion.join(", ")}]` },
+    { label: "Peso total", value: `${data.mejorPeso.toFixed(2)} kg` },
+    { label: "Diferencia con ideal", value: `${(data.mejorPeso - pesoIdeal).toFixed(2)} kg` },
+    { label: "Promedio últimos 5", value: `${promedio.toFixed(2)} kg` },
+    { label: "Uso de básculas", value: `${data.mejorTamano}` },
+    { label: "Paquetes/minuto", value: `${paquetesPorMinuto}` },
+  ];
 
-  // 4) Actualizar gráfico
+  items.forEach(({ label, value }) => {
+    const div = document.createElement("div");
+    div.className = "infoItem";
+    div.innerHTML = `<strong>${label}</strong><br>${value}`;
+    info.appendChild(div);
+  });
+
+  // Actualizar gráfico
   pesoChart.data.datasets[0].data.push({ x: now, y: data.mejorPeso });
   if (pesoChart.data.datasets[0].data.length > 30) pesoChart.data.datasets[0].data.shift();
   pesoChart.update('none');
-};
-
-ws.onerror = (err) => {
-  info.textContent = "Error WS: " + err;
-};
-
-ws.onclose = () => {
-  info.textContent = "Conexión cerrada.";
 };
