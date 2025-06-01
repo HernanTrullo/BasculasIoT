@@ -9,6 +9,16 @@ const info = document.getElementById("info");
 const ultimosPesos = [];
 const ultimosTiempos = [];  // para contar paquetes por minuto
 
+// Variables para control de actualización
+let lastPaquetesMinutoUpdate = 0;
+let paquetesPorMinuto = 0;
+
+let lastPaquetesDiaUpdate = 0;
+let paquetesAcumuladosDia = 0;
+
+// Guardar fecha del día actual para reset diario
+let fechaActualDia = new Date().toDateString();
+
 // Gráfico principal
 const pesoChart = new Chart(document.getElementById('pesoChart').getContext('2d'), {
     type: 'line',
@@ -45,16 +55,38 @@ ws.onmessage = (evt) => {
   const data = JSON.parse(evt.data);
   const now = new Date();
 
-  // Registrar tiempo de llegada
-    ultimosTiempos.push(now);
+  // Agregar timestamp
+  ultimosTiempos.push(now);
 
-    // Filtrar solo los de los últimos 60 segundos
+  // Limpiar ultimosTiempos para que no crezca indefinidamente (mantener solo últimos 24h por ejemplo)
+  const hace24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  while (ultimosTiempos.length && ultimosTiempos[0] < hace24h) {
+    ultimosTiempos.shift();
+  }
+
+  // ===== Actualizar paquetesPorMinuto cada 30 segundos =====
+  if (now.getTime() - lastPaquetesMinutoUpdate > 30 * 1000) {
     const haceUnMinuto = new Date(now.getTime() - 60 * 1000);
     const tiemposFiltrados = ultimosTiempos.filter(t => t >= haceUnMinuto);
-    ultimosTiempos.length = 0;
-    ultimosTiempos.push(...tiemposFiltrados);
+    paquetesPorMinuto = tiemposFiltrados.length;
+    lastPaquetesMinutoUpdate = now.getTime();
+  }
 
-    const paquetesPorMinuto = tiemposFiltrados.length;
+  // ===== Actualizar paquetes acumulados por día cada 5 minutos =====
+  if (now.toDateString() !== fechaActualDia) {
+    // Reiniciar conteo al cambiar de día
+    paquetesAcumuladosDia = 0;
+    fechaActualDia = now.toDateString();
+  }
+
+  if (now.getTime() - lastPaquetesDiaUpdate > 5 * 60 * 1000) {
+    // Contar paquetes en el día (desde medianoche)
+    const inicioDia = new Date(now);
+    inicioDia.setHours(0, 0, 0, 0);
+    const paquetesHoy = ultimosTiempos.filter(t => t >= inicioDia).length;
+    paquetesAcumuladosDia = paquetesHoy;
+    lastPaquetesDiaUpdate = now.getTime();
+  }
 
   // Mostrar básculas
   cont.innerHTML = "";
@@ -66,15 +98,15 @@ ws.onmessage = (evt) => {
     cont.appendChild(div);
   });
 
-  // Calcular promedio de últimos 5 pesos
+  // Calcular promedio de últimos 30 pesos
   ultimosPesos.push(data.mejorPeso);
   if (ultimosPesos.length > 30) ultimosPesos.shift();
   const promedio = ultimosPesos.reduce((a, b) => a + b, 0) / ultimosPesos.length;
 
   // calcular porcentaje de error
-  const peso_objetivo = 20;
+  const peso_objetivo = pesoIdeal;
   const peso_encontrado = data.mejorPeso.toFixed(2);
-  const porcentaje_error = 100*(promedio -peso_objetivo)/peso_objetivo 
+  const porcentaje_error = 100*(promedio - peso_objetivo)/peso_objetivo;
 
   // Mostrar info separada por ítems
   info.innerHTML = ""; // limpiar
@@ -82,10 +114,11 @@ ws.onmessage = (evt) => {
     { label: "Mejor combinación", value: `[${data.combinacion.join(", ")}]` },
     { label: "Peso objetivo", value: `${peso_objetivo} g` },
     { label: "Peso encontrado", value: `${peso_encontrado} g` },
-    { label: "Desviación", value: `${porcentaje_error.toFixed(2)} %` },
-    { label: "Promedio pesos", value: `${promedio.toFixed(2)} g` },
+    { label: "Desviación de los últimos 30", value: `${porcentaje_error.toFixed(2)} %` },
+    { label: "Promedio pesos de los últimos 30", value: `${promedio.toFixed(2)} g` },
     { label: "Uso de básculas", value: `${data.mejorTamano}` },
     { label: "Paquetes/minuto", value: `${paquetesPorMinuto} paq` },
+    { label: "Paquetes acumulados por día", value: `${paquetesAcumuladosDia} paq` },
   ];
 
   items.forEach(({ label, value }) => {
