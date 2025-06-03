@@ -1,70 +1,66 @@
-const espIP = "5258-200-6-182-114.ngrok-free.app";  // IP de tu ESP32
 const pesoIdeal = 20.0;
 
-const ws = new WebSocket(`wss://${espIP}/ws`);
+// Conexión a HiveMQ Cloud vía WebSocket seguro (WSS)
+const client = mqtt.connect("wss://fb6a5ee0562d42b19e2716f427d8e514.s1.eu.hivemq.cloud:8884/mqtt", {
+  username: "readypackers_basculasiot",
+  password: "1007587458Matematicas",
+  protocol: "wss",
+  connectTimeout: 5000,
+  reconnectPeriod: 2000,
+  clean: true,
+  clientId: "webclient_" + Math.random().toString(16).substring(2, 10)
+});
+
+const topic = "hernan/basculas/peso"; // Debe coincidir con el que publica la ESP32
 const cont = document.getElementById("basculas");
 const info = document.getElementById("info");
 
-// Almacenar los últimos 5 pesos para promedio
 const ultimosPesos = [];
-const ultimosTiempos = [];  // para contar paquetes por minuto
-
-// Variables para control de actualización
+const ultimosTiempos = [];
 let lastPaquetesMinutoUpdate = 0;
 let paquetesPorMinuto = 0;
-
 let lastPaquetesDiaUpdate = 0;
 let paquetesAcumuladosDia = 0;
-
-// Guardar fecha del día actual para reset diario
 let fechaActualDia = new Date().toDateString();
 
-// Gráfico principal
 const pesoChart = new Chart(document.getElementById('pesoChart').getContext('2d'), {
-    type: 'line',
-    data: {
-      datasets: [{
-        label: 'Mejor Peso Encontrado',
-        data: [],
-        fill: false,
-        tension: 0.1,
-        borderColor: '#007bff'
-      }]
-    },
-    options: {
-      animation: false,
-      responsive: true,
-      scales: {
-        x: {
-          type: 'time',
-          time: { unit: 'second', tooltipFormat: 'HH:mm:ss' },
-          title: { display: true, text: 'Hora' }
-        },
-        y: {
-          title: { display: true, text: 'Peso' }
-        }
-      }
+  type: 'line',
+  data: {
+    datasets: [{
+      label: 'Mejor Peso Encontrado',
+      data: [],
+      fill: false,
+      tension: 0.1,
+      borderColor: '#007bff'
+    }]
+  },
+  options: {
+    animation: false,
+    responsive: true,
+    scales: {
+      x: { type: 'time', time: { unit: 'second', tooltipFormat: 'HH:mm:ss' }, title: { display: true, text: 'Hora' } },
+      y: { title: { display: true, text: 'Peso' } }
     }
+  }
 });
 
-ws.onopen = () => {
-  info.textContent = "Conectado. Esperando datos...";
-};
+// Conectado
+client.on("connect", () => {
+  console.log("Conectado a HiveMQ Cloud");
+  info.textContent = "Conectado a HiveMQ. Esperando datos...";
+  client.subscribe(topic, err => {
+    if (err) console.error("Suscripción fallida:", err);
+  });
+});
 
-ws.onmessage = (evt) => {
-  const data = JSON.parse(evt.data);
+// Recibir mensajes
+client.on("message", (topic, message) => {
+  const data = JSON.parse(message.toString());
   const now = new Date();
-
-  // Agregar timestamp
   ultimosTiempos.push(now);
-
-  // Limpiar ultimosTiempos para que no crezca indefinidamente (mantener solo últimos 24h por ejemplo)
   const hace24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-  while (ultimosTiempos.length && ultimosTiempos[0] < hace24h) {
-    ultimosTiempos.shift();
-  }
+  while (ultimosTiempos.length && ultimosTiempos[0] < hace24h) ultimosTiempos.shift();
 
-  // ===== Actualizar paquetesPorMinuto cada 30 segundos =====
   if (now.getTime() - lastPaquetesMinutoUpdate > 30 * 1000) {
     const haceUnMinuto = new Date(now.getTime() - 60 * 1000);
     const tiemposFiltrados = ultimosTiempos.filter(t => t >= haceUnMinuto);
@@ -72,23 +68,18 @@ ws.onmessage = (evt) => {
     lastPaquetesMinutoUpdate = now.getTime();
   }
 
-  // ===== Actualizar paquetes acumulados por día cada 5 minutos =====
   if (now.toDateString() !== fechaActualDia) {
-    // Reiniciar conteo al cambiar de día
     paquetesAcumuladosDia = 0;
     fechaActualDia = now.toDateString();
   }
 
   if (now.getTime() - lastPaquetesDiaUpdate > 5 * 60 * 1000) {
-    // Contar paquetes en el día (desde medianoche)
     const inicioDia = new Date(now);
     inicioDia.setHours(0, 0, 0, 0);
-    const paquetesHoy = ultimosTiempos.filter(t => t >= inicioDia).length;
-    paquetesAcumuladosDia = paquetesHoy;
+    paquetesAcumuladosDia = ultimosTiempos.filter(t => t >= inicioDia).length;
     lastPaquetesDiaUpdate = now.getTime();
   }
 
-  // Mostrar básculas
   cont.innerHTML = "";
   data.basculas.forEach((p, i) => {
     const div = document.createElement("div");
@@ -98,18 +89,14 @@ ws.onmessage = (evt) => {
     cont.appendChild(div);
   });
 
-  // Calcular promedio de últimos 30 pesos
   ultimosPesos.push(data.mejorPeso);
   if (ultimosPesos.length > 30) ultimosPesos.shift();
   const promedio = ultimosPesos.reduce((a, b) => a + b, 0) / ultimosPesos.length;
-
-  // calcular porcentaje de error
   const peso_objetivo = pesoIdeal;
   const peso_encontrado = data.mejorPeso.toFixed(2);
-  const porcentaje_error = 100*(promedio - peso_objetivo)/peso_objetivo;
+  const porcentaje_error = 100 * (promedio - peso_objetivo) / peso_objetivo;
 
-  // Mostrar info separada por ítems
-  info.innerHTML = ""; // limpiar
+  info.innerHTML = "";
   const items = [
     { label: "Mejor combinación", value: `[${data.combinacion.join(", ")}]` },
     { label: "Peso objetivo", value: `${peso_objetivo} g` },
@@ -128,8 +115,7 @@ ws.onmessage = (evt) => {
     info.appendChild(div);
   });
 
-  // Actualizar gráfico
   pesoChart.data.datasets[0].data.push({ x: now, y: data.mejorPeso });
   if (pesoChart.data.datasets[0].data.length > 30) pesoChart.data.datasets[0].data.shift();
   pesoChart.update('none');
-};
+});
