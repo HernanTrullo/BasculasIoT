@@ -19,9 +19,6 @@ const ultimosPesos = [];
 const ultimosTiempos = [];
 let lastPaquetesMinutoUpdate = 0;
 let paquetesPorMinuto = 0;
-let lastPaquetesDiaUpdate = 0;
-let paquetesAcumuladosDia = 0;
-let fechaActualDia = new Date().toDateString();
 
 const pesoChart = new Chart(document.getElementById('pesoChart').getContext('2d'), {
   type: 'line',
@@ -68,17 +65,7 @@ client.on("message", (topic, message) => {
     lastPaquetesMinutoUpdate = now.getTime();
   }
 
-  if (now.toDateString() !== fechaActualDia) {
-    paquetesAcumuladosDia = 0;
-    fechaActualDia = now.toDateString();
-  }
-
-  if (now.getTime() - lastPaquetesDiaUpdate >  60 * 1000) {
-    const inicioDia = new Date(now);
-    inicioDia.setHours(0, 0, 0, 0);
-    paquetesAcumuladosDia = data.numero_productos_diarios;
-    lastPaquetesDiaUpdate = now.getTime();
-  }
+  paquetesAcumuladosDia = data.numero_productos_diarios;
 
   cont.innerHTML = "";
   data.basculas.forEach((p, i) => {
