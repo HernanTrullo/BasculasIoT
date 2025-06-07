@@ -73,10 +73,10 @@ client.on("message", (topic, message) => {
     fechaActualDia = now.toDateString();
   }
 
-  if (now.getTime() - lastPaquetesDiaUpdate > 5 * 60 * 1000) {
+  if (now.getTime() - lastPaquetesDiaUpdate >  60 * 1000) {
     const inicioDia = new Date(now);
     inicioDia.setHours(0, 0, 0, 0);
-    paquetesAcumuladosDia = ultimosTiempos.filter(t => t >= inicioDia).length;
+    paquetesAcumuladosDia = data.paquetesAcumuladosDia;
     lastPaquetesDiaUpdate = now.getTime();
   }
 
