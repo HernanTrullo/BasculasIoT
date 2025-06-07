@@ -76,7 +76,7 @@ client.on("message", (topic, message) => {
   if (now.getTime() - lastPaquetesDiaUpdate >  60 * 1000) {
     const inicioDia = new Date(now);
     inicioDia.setHours(0, 0, 0, 0);
-    paquetesAcumuladosDia = data.paquetesAcumuladosDia;
+    paquetesAcumuladosDia = data.numero_productos_diarios;
     lastPaquetesDiaUpdate = now.getTime();
   }
 
