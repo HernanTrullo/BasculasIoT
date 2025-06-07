@@ -89,7 +89,7 @@ client.on("message", (topic, message) => {
     { label: "Peso objetivo", value: `${peso_objetivo} g` },
     { label: "Peso encontrado", value: `${peso_encontrado} g` },
     { label: "Desviación de los últimos 30", value: `${porcentaje_error.toFixed(2)} %` },
-    { label: "Promedio pesos de los últimos 30", value: `${promedio.toFixed(2)} g` },
+    { label: "Promedio peso de los últimos 30", value: `${promedio.toFixed(2)} g` },
     { label: "Uso de básculas", value: `${data.mejorTamano}` },
     { label: "Paquetes/minuto", value: `${paquetesPorMinuto} paq` },
     { label: "Paquetes acumulados por día", value: `${paquetesAcumuladosDia} paq` },
