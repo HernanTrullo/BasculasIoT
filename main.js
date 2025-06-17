@@ -58,17 +58,12 @@ client.on("message", (topic, message) => {
   const hace24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
   while (ultimosTiempos.length && ultimosTiempos[0] < hace24h) ultimosTiempos.shift();
 
-  if (now.getTime() - lastPaquetesMinutoUpdate > 30 * 1000) {
-    const haceUnMinuto = new Date(now.getTime() - 60 * 1000);
-    const tiemposFiltrados = ultimosTiempos.filter(t => t >= haceUnMinuto);
-    paquetesPorMinuto = tiemposFiltrados.length;
-    lastPaquetesMinutoUpdate = now.getTime();
-  }
-
   paquetesAcumuladosDia = data.numero_productos_diarios;
-
+  paquetesPorMinuto = data.productos_por_minuto;
+  const num_basculas = 10;
   cont.innerHTML = "";
   data.basculas.forEach((p, i) => {
+    if (i>=num_basculas) return;
     const div = document.createElement("div");
     div.className = "b";
     if (data.combinacion.includes(i)) div.classList.add("highlight");
