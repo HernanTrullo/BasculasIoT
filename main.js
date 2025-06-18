@@ -60,7 +60,7 @@ client.on("message", (topic, message) => {
 
   paquetesAcumuladosDia = data.numero_productos_diarios;
   paquetesPorMinuto = data.productos_por_minuto;
-  const num_basculas = 10;
+  const num_basculas = 14;
   cont.innerHTML = "";
   data.basculas.forEach((p, i) => {
     if (i>=num_basculas) return;
