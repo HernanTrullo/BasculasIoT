@@ -73,10 +73,10 @@ client.on("message", (topic, message) => {
 
   ultimosPesos.push(data.mejorPeso);
   if (ultimosPesos.length > 30) ultimosPesos.shift();
-  const promedio = ultimosPesos.reduce((a, b) => a + b, 0) / ultimosPesos.length;
+  const promedio = data.promedio;
   const peso_objetivo = pesoIdeal;
   const peso_encontrado = data.mejorPeso.toFixed(2);
-  const porcentaje_error = 100 * (promedio - peso_objetivo) / peso_objetivo;
+  const porcentaje_error = data.desviacion;
 
   info.innerHTML = "";
   const items = [
