@@ -62,14 +62,31 @@ client.on("message", (topic, message) => {
   paquetesPorMinuto = data.productos_por_minuto;
   const num_basculas = 14;
   cont.innerHTML = "";
-  data.basculas.forEach((p, i) => {
-    if (i>=num_basculas) return;
-    const div = document.createElement("div");
-    div.className = "b";
-    if (data.combinacion.includes(i)) div.classList.add("highlight");
-    div.innerHTML = `B${i}<br>${p.toFixed(1)}`;
-    cont.appendChild(div);
-  });
+  
+  const width = cont.clientWidth;
+const height = cont.clientHeight;
+const centerX = width / 2;
+const centerY = height / 2;
+const r = 240; // radio de la circunferencia (ajustable)
+
+data.basculas.forEach((p, i) => {
+  if (i >= num_basculas) return;
+
+  const div = document.createElement("div");
+  div.className = "b";
+  if (data.combinacion.includes(i)) div.classList.add("highlight");
+  div.innerHTML = `B${i}<br>${p.toFixed(1)}`;
+
+  // Posición circular
+  const angle = 2 * Math.PI * i / num_basculas;
+  const x = centerX + r * Math.cos(angle);
+  const y = centerY + r * Math.sin(angle);
+
+  div.style.left = `${x}px`;
+  div.style.top = `${y}px`;
+
+  cont.appendChild(div);
+});
 
   ultimosPesos.push(data.mejorPeso);
   if (ultimosPesos.length > 30) ultimosPesos.shift();
