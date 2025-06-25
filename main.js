@@ -63,11 +63,14 @@ client.on("message", (topic, message) => {
   const num_basculas = 14;
   cont.innerHTML = "";
   
-  const width = cont.clientWidth;
+  // Obtener tamaño actual del contenedor
+const width = cont.clientWidth;
 const height = cont.clientHeight;
 const centerX = width / 2;
 const centerY = height / 2;
-const r = 240; // radio de la circunferencia (ajustable)
+
+// Calcular radio dinámicamente, con margen
+const radio = Math.min(width, height) / 2 - 40; // deja espacio para cada .b (aprox. 60px)
 
 data.basculas.forEach((p, i) => {
   if (i >= num_basculas) return;
@@ -77,10 +80,9 @@ data.basculas.forEach((p, i) => {
   if (data.combinacion.includes(i)) div.classList.add("highlight");
   div.innerHTML = `B${i}<br>${p.toFixed(1)}`;
 
-  // Posición circular
   const angle = 2 * Math.PI * i / num_basculas;
-  const x = centerX + r * Math.cos(angle);
-  const y = centerY + r * Math.sin(angle);
+  const x = centerX + radio * Math.cos(angle);
+  const y = centerY + radio * Math.sin(angle);
 
   div.style.left = `${x}px`;
   div.style.top = `${y}px`;
